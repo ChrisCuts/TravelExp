@@ -1,7 +1,7 @@
 '''
 Created on 26.07.2016
 
-@author: cdo
+@author: ChrisCuts
 '''
 
 # standard modules
@@ -212,9 +212,12 @@ class TravelExpense():
     def edit_xls(self):
         
         self.file = '{}/Reisekosten_{}.xlsx'.format(self.path, self.expense.number)
+        
         copyfile('Reisekostenabrechnung.xlsx', self.file)
         
         self.fill_cells()    
+            
+        
         
     def fill_cells(self):
         
@@ -303,24 +306,29 @@ class TicketFolder():
         # create expenses
         self.expenses = []
         weekly = []
-        for ticket in tickets:
-            
-            if weekly == [] or ticket.departure.week() == weekly[0].departure.week():
-                weekly.append(ticket)
+        
+        try:
+            for ticket in tickets:
                 
-            else:
+                if weekly == [] or ticket.departure.week() == weekly[0].departure.week():
+                    weekly.append(ticket)
+                    
+                else:
+                    
+                    self.expenses.append(TravelExpense(len(self.expenses)+1, weekly, path, config))
+                    weekly.clear()
+                    weekly.append(ticket)
                 
-                self.expenses.append(TravelExpense(len(self.expenses)+1, weekly, path, config))
-                weekly.clear()
-                weekly.append(ticket)
-            
-        self.expenses.append(TravelExpense(len(self.expenses)+1, weekly, path, config))
+            self.expenses.append(TravelExpense(len(self.expenses)+1, weekly, path, config))
+        
+        except FileNotFoundError:
+            print('Please, copy Reisekostenabrechnung.xlsx into application folder.')
         
         
 
 APP_INFO = \
 '''
-Creates a travel expense by analysing DB Ticket documents.
+Creates a travel expenses by analysing DB Ticket documents.
 
 Usage: travelexp.exe <path to documents>
 '''

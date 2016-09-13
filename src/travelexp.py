@@ -1,33 +1,30 @@
 '''
 Created on 26.07.2016
 
-@author: cdo
+@author: DoppC
 '''
 
-# standard modules
-from datetime import datetime
-import os
-import re
-
-import sys
-
-# extended file manipulation
-from shutil import copyfile
-
-# modules for this project
 import PyPDF2
 from openpyxl import load_workbook
 import configparser
 
+from datetime import datetime
+import os
+from shutil import copyfile
+import re
+
+import sys
+
+#from openpyxl import load_workbook
 
 class DBTrip():
     
-    class SpecialCharacterDecode():
-        TABLE = [(str(b'\xe2\x80\xa6', encoding='utf-8'), chr(0xF6)),
-                 (str(b'\xe2\x80\x94', encoding='utf-8'), chr(0xF6)),
-                 (str(b'\xe2\x80\x93', encoding='utf-8'), chr(0xF6)),
-                 (str(b'\xe2\x80\xa0', encoding='utf-8'), chr(0xFC)),
-                 (str(b'\xe2\x80\xa2', encoding='utf-8'), chr(0xE4))]
+    class UmlautDecode():
+        TABLE = [(str(b'\xe2\x80\xa6', encoding='utf-8'), u'ö'),
+                 (str(b'\xe2\x80\x94', encoding='utf-8'), u'ö'),
+                 (str(b'\xe2\x80\x93', encoding='utf-8'), u'ö'),
+                 (str(b'\xe2\x80\xa0', encoding='utf-8'), u'ü'),
+                 (str(b'\xe2\x80\xa2', encoding='utf-8'), u'ä')]
     
         @classmethod
         def decode(cls, lines):
@@ -70,7 +67,7 @@ class DBTrip():
                         lines += i
                 lines += '\n'
         
-        lines = self.SpecialCharacterDecode.decode(lines)
+        lines = self.UmlautDecode.decode(lines)
                 
         year = re.search('(?<=G.ltigkeit: \n\d\d.\d\d.)\d{4}', lines).group()
         
@@ -163,8 +160,7 @@ class TravelExpense():
                 
             else:
                 raise(ValueError('Invalid argument'))
-    
-    #TODO: put into separate file (maybe cfg)   
+            
     # PERSON
     NAME        = 'B4'
     ID          = 'I4'
@@ -282,7 +278,11 @@ class TravelExpense():
         
 class TicketFolder():
     
-    def __init__(self, path, config):
+    def __init__(self, path):
+    
+        # scan config
+        config = configparser.RawConfigParser()
+        config.read('expense.cfg')
     
         # scan folder    
         ticketfiles = os.listdir(path)        
@@ -318,48 +318,25 @@ class TicketFolder():
         
         
 
-APP_INFO = \
-'''
-Creates a travel expense by analysing DB Ticket documents.
-
-Usage: travelexp.exe <path to documents>
-'''
-
-CONFIG_FILE_TEMPLATE = \
-'''
-[PERSON]
-name = Max Mustermann
-id = 012345678
-
-[PROJECT]
-name = Three Gorges Dam
-id = 0123
-
-[HOTEL]
-name = Ritz Paris
-breakfast = nein
-costs = 00.00
-'''
 
 if __name__ == '__main__':
     
-    # scan config
-    config = configparser.RawConfigParser()
-    config.read('expense.cfg')
-    
-    if config.sections() == []:
-        
-        print('\'expense.cfg\' not found or incorrect.\nPlease fill out template and restart travelexp.')
-        # create expense.cfg template
-        with open('expense.cfg', 'w') as config_file:
-            config_file.write(CONFIG_FILE_TEMPLATE)
-        
+    if len(sys.argv) != 2:
+        print('Creates a travel expense by analysing DB Ticket documents.')
+        print('\nUsage: travelexp.exe <path to documents>')
     else:
-        # check arguments
-        if len(sys.argv) != 2:
-            print(APP_INFO)
-        else:
-            folder = TicketFolder(sys.argv[1], config)
         
-        
+        folder = TicketFolder(sys.argv[1])
     
+#    pdf = PyPDF2.PdfFileReader('August/15.pdf')
+#    page = pdf.getPage(0)
+#    content = page["/Contents"].getObject()
+#    content = PyPDF2.pdf.ContentStream(content, page.pdf)
+#    
+#     trip = DBTrip('August', '11.pdf')
+#     print(trip)
+#    wb = load_workbook('Mappe1.xlsx')
+#    
+#    ws = wb.active
+#    ws['A3'] = 42
+#    wb.save("Mappe1.xlsx")

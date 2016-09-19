@@ -1,7 +1,7 @@
 # TravelExp
 Creates travel expenses by analysing DB Ticket documents.
 
-## Best Practice
+## HowTo
 * copy files into folder (or extract zip-file)
 * copy _reisekostenabrechnung.xlsx_ into folder
 * create new folder + move DB Tickets into the newly created folder
